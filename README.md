@@ -42,7 +42,7 @@ O projeto originalmente tinha como database o da Fiap Oracle, optamos pela migra
 **Motivos:**
 - Segurança: Evita o compartilhamento de credenciais reais de banco de dados no repositório.
 - Portabilidade: Garante que o avaliador consiga rodar o projeto sem conflitos de rede ou indisponibilidade de servidores externos.
-- Externalização: Toda a configuração sensível é injetada via variáveis de ambiente, mantendo o histórico do Git limpo de segredos.
+- Externalização: Toda a configuração sensível é injetada via variáveis de ambiente
 
 Prints Funcionamento:
 1. Resposta da API (JSON)
