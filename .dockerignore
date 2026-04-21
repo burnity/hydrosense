@@ -1,0 +1,9 @@
+# Arquivos e diretorios a serem ignorados pelo Docker
+target/
+.git/
+.gitignore
+*.md
+.idea/
+.vscode/
+*.iml
+.DS_Store

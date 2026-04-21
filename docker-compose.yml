@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # Banco de Dados PostgreSQL
+  db:
+    image: postgres:15.5-alpine
+    container_name: hydrosense-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-hydrosense}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - hydrosense-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicacao HydroSense
+  hydrosense-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hydrosense-app
+    ports:
+      - "8080:8080"
+    environment:
+      # Configuracoes do banco PostgreSQL via variaveis de ambiente
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://db:5432/hydrosense}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-user}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-password}
+      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-true}
+      # Configuracoes JWT
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      # Opcional: permitir que o Hibernate atualize o schema quando Flyway estiver desabilitado
+      SPRING_JPA_DDL_AUTO: ${SPRING_JPA_DDL_AUTO:-none}
+    depends_on:
+      - db
+    networks:
+      - hydrosense-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/unidades"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  pgdata:
+
+networks:
+  hydrosense-network:
+    driver: bridge
